@@ -11,7 +11,5 @@ use std::io::stdout;
 use std::fs;
 
 fn main() {
-    let mut grid = tree_grid::TreeGrid::new(3, 3); // IGNORE, NOT NEEDED //
-    runner(&grid, tree_grid::TreeGrid::pretty_print);
-
+    runner();
 }

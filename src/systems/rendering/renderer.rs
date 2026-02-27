@@ -10,7 +10,8 @@ use crossterm::{
     queue,
 };
 
-use crate::systems::rendering::layer::Layer;
+use super::sheets::layer::Layer;
+use super::sheets::main_menu::MainMenu;
 
 
 // --- FRAME BUFFER ---//
@@ -30,14 +31,25 @@ impl FrameBuffer {
             data: vec![' '; area_size]}
     }
 
-    pub fn apply_layer(&mut self, layer: &Layer){
-        let layer_vec = layer.draw();
-        assert!(layer_vec.len() <= self.data.len()); // TODO FIX THIS?
-        for i in 0..layer_vec.len(){
-            if layer_vec[i] == layer.alpha_char{
-                continue;
+    pub fn apply_layer(&mut self, layer: &dyn Layer) {
+        let layer_vec = layer.get_render();
+        let (pos_x, pos_y) = layer.get_position();
+        let (width, height) = layer.get_scale();
+
+        assert!(pos_x + width <= self.cols);
+        assert!(pos_y + height <= self.rows);
+
+        for r in 0..height {
+            for c in 0..width {
+                let layer_idx = r * width + c;
+                let canvas_idx = (pos_y + r) * self.cols + (pos_x + c);
+
+                if layer_vec[layer_idx] == layer.get_alpha_char() {
+                    continue;
+                }
+
+                self.data[canvas_idx] = layer_vec[layer_idx];
             }
-            self.data[i] = layer_vec[i];
         }
     }
 
@@ -71,28 +83,28 @@ impl Renderer {
     /// Returns true, if screen too small - TODO
     fn screen_too_small(&self) -> bool{
         let (width, height) = terminal::size().unwrap();
-        if width < 80 || height < 24 {
+        if width < self.width as u16 || height < self.height as u16 {
             return true;
         }
         false
     }
 
-    pub fn render(&self, layers:&[Layer]){
+    pub fn render(&self, layers: &[&dyn Layer]){
         let mut out = stdout();
         // execute!(stdout(), Clear(ClearType::All)).unwrap(); Causes flickering, instead write over
         queue!(out, cursor::MoveTo(0, 0)).unwrap(); // move to top instead of clear
     
         // Enforce Screen Size
         if self.screen_too_small() { 
-            print!("Please resize your terminal to at least 80x24\r\n");
+            print!("Please resize your terminal to at least {}x{}\r\n", self.width, self.height);
             out.flush().unwrap();
             return;
         }
 
         // Update Buffer
         let mut buffer = FrameBuffer::new(self.width, self.height);
-        for layer in layers{
-            buffer.apply_layer(layer);
+        for layer in layers {
+            buffer.apply_layer(*layer);
         }
 
         buffer.print(&mut out);
