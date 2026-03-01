@@ -89,7 +89,7 @@ impl Renderer {
         false
     }
 
-    pub fn render(&self, layers: &[&dyn Layer]){
+    pub fn render(&self, layers: Vec<&dyn Layer>){
         let mut out = stdout();
         // execute!(stdout(), Clear(ClearType::All)).unwrap(); Causes flickering, instead write over
         queue!(out, cursor::MoveTo(0, 0)).unwrap(); // move to top instead of clear
@@ -104,8 +104,8 @@ impl Renderer {
         // Update Buffer
         let mut buffer = FrameBuffer::new(self.width, self.height);
         for layer in layers {
-            buffer.apply_layer(*layer);
-        }
+            buffer.apply_layer(layer);
+        }   
 
         buffer.print(&mut out);
         out.flush().unwrap();

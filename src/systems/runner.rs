@@ -13,9 +13,9 @@ use crate::world::tree_grid::TreeGrid;
 use crate::systems::rendering::renderer;
 use crate::systems::rendering::sheets::layer::Layer;
 use crate::systems::rendering::sheets::main_menu::MainMenu;
-
 use crate::systems::rendering::state_render::State_Render;
-
+use super::rendering::context_manager::SceneContext;
+use super::rendering::context_manager::SceneContextMngr;
 
 // SETTING TERMINAL SHIT //
 
@@ -38,29 +38,19 @@ fn initial_env(){
     terminal_set_env()
 }
 
-fn handle_input(main_menu: &mut MainMenu) -> bool {
+fn grab_input() -> Option<KeyCode> {
     if !event::poll(Duration::from_millis(0)).unwrap() {
-        return false;
+        return None;
     }
 
     match event::read().unwrap() {
-        Event::Key(KeyEvent { code, kind: KeyEventKind::Press, modifiers, .. }) => {
-            match code {
-                KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => return true,
-                KeyCode::Char('q') => return true,
-                KeyCode::Up    => { main_menu.cursor_up(); }
-                KeyCode::Down  => { main_menu.cursor_down(); }
-                KeyCode::Left  => {  }
-                KeyCode::Right => {  }
-                _ => {}
-            }
-        }
+        Event::Key(KeyEvent { code, kind: KeyEventKind::Press, .. }) => Some(code),
         Event::Resize(_, _) => {
             execute!(stdout(), Clear(ClearType::All)).unwrap();
+            None
         }
-        _ => {}
+        _ => None,
     }
-    false
 }
 
 pub fn runner() {
@@ -71,29 +61,43 @@ pub fn runner() {
     let frame_duration = Duration::from_millis(1000 / target_fps);
 
     let renderer = renderer::Renderer::new(100, 30);
-    
-
-    // UI TEST //
-    let mut main_menu = Box::new(MainMenu::new((20,10), (1, 1), '¿'));
+    let scene_context_mngr = SceneContextMngr::new();
 
 
     execute!(stdout(), Clear(ClearType::All)).unwrap();
     loop {
         let frame_start = Instant::now();
 
-        // --- UPDATE ---
-        if handle_input(&mut main_menu) { // QUIT GAME
-            terminal_reset_env();
-            break;
+        // --- UPDATE --- 
+        let key_input = grab_input();
+        if let Some(key) = key_input {
+            match key {
+                KeyCode::Char('c') | KeyCode::Char('q') => {
+                    // QUIT
+                    terminal_reset_env();
+                    break;
+                }
+                _ => {}
+            }
         }
 
-        // for layer in layers.iter_mut(){
-        //     layer.update_state(state_render);
-        // }
+
+        // SCENE_MANAGER.update_on_tick
+            // vvv HIDDEN IN IMPL vvv
+            // 
+        // get_input
+            // if quit... quit? (for now at least)
+            
+        // SCENE_MANAGER.current_scene.handle_input
 
         // --- RENDER ---
-        let layers: Vec<&dyn Layer> = vec![main_menu.as_ref()];  // borrow, not move
-        renderer.render(&layers);
+        
+        // LAYERS are constant?
+        // SCENE_MANAGER dynamically adds references to a layer, and returns
+            // Get scene layers
+        
+        let layers_to_render = scene_context_mngr.get_scene_layers();
+        renderer.render(layers_to_render);
 
         // --- SLEEP remaining frame time ---
         let elapsed = frame_start.elapsed();
