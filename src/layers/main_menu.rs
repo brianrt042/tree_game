@@ -28,7 +28,7 @@ impl MainMenu{
         let mut i = 0;
         for c in draw_vector.iter_mut(){
             if *c == POINT_CHAR{
-                if(i == self.cursor_pos){
+                if i == self.cursor_pos{
                     *c = 'X'
                 }
                 i += 1;       

@@ -8,9 +8,7 @@ use crossterm::{
     terminal::{self, Clear, ClearType, disable_raw_mode, enable_raw_mode}
 };
 
-use crate::world::tree_grid::TreeGrid;
 use crate::systems::layer::Layer;
-
 use super::context_stack::ContextAction;
 use super::renderer::Renderer;
 use super::context_stack::ContextStack;

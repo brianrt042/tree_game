@@ -1,11 +1,6 @@
-use std::fs;
-use std::io::{stdout, {self, Write}};
+use std::io::{stdout, {Write}};
 use crossterm::{
-    cursor::{Hide, MoveTo, Show},
-    event::{Event, KeyCode, read},
-    execute,
-    style::{Color, Print, SetForegroundColor},
-    terminal::{self, Clear, ClearType, disable_raw_mode, enable_raw_mode},
+    terminal::{self},
     cursor, 
     queue,
 };

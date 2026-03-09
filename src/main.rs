@@ -1,4 +1,3 @@
-mod world;
 mod layers;
 mod systems;
 mod scenes;
@@ -18,7 +17,7 @@ use systems::runner::runner;
 
 
 fn main() {
-    let mut renderer = Renderer::new(100, 30);
-    let mut context_stack = ContextStack::new(vec![]);
+    let renderer = Renderer::new(100, 30);
+    let context_stack = ContextStack::new(vec![]);
     runner(renderer, context_stack);
 }
